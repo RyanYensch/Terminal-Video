@@ -1,3 +1,7 @@
+# Custom files
+player
+video.mp4
+
 # Prerequisites
 *.d
 
@@ -67,4 +71,3 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
-player
