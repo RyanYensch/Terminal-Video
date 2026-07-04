@@ -79,6 +79,7 @@ void handleInterrupt(int signum) {
     std::cout << "Video interuppted.\n";
 
     std::remove("video.mp4");
+    std::remove("audio.wav");
 
     exit(signum);
 }
@@ -100,15 +101,21 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    std::string command = "yt-dlp --force-overwrites -f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" -o video.mp4 " + std::string(argv[1]);
+    std::string videoCommand = "yt-dlp --force-overwrites -f \"bestvideo[ext=mp4]/best[ext=mp4]\" -o video.mp4 " + std::string(argv[1]);
+    std::string audioCommand = "yt-dlp --force-overwrites -f \"bestaudio\" --extract-audio --audio-format wav -o audio.wav " + std::string(argv[1]);
 
-    int res = std::system(command.c_str());
+    std::cout << "Downloading Video Track...\n";
+    int resVideo = std::system(videoCommand.c_str());
+
+
+    std::cout << "Downloading Audio Track.\n";
+    int resAudio = std::system(audioCommand.c_str());
 
     // Successful
-    if (res == 0) {
-        std::cout << "Video download as video.mp4\n";
+    if (resVideo == 0 && resAudio == 0) {
+        std::cout << "Video download as video.mp4 and audio.wav\n";
     } else {
-        std::cerr << "Error retrieving video\n";
+        std::cerr << "Error retrieving video or audio\n";
         exit(EXIT_FAILURE);
     }
 
@@ -166,6 +173,7 @@ int main(int argc, char* argv[]) {
 
     // Remove video file
     std::remove("video.mp4");
+    std::remove("audio.wav");
 
     return 0;
 }
