@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <string>
 #include <unistd.h>
+#include <chrono>
+#include <thread>
 #include <sys/ioctl.h>
 #include <opencv2/opencv.hpp>
 
@@ -99,7 +101,16 @@ int main(int argc, char* argv[]) {
     // Clear the screen before video
     std::cout << "\033[?1049h\033[?25l";
 
+    // Get the fps
+    double fps = cap.get(cv::CAP_PROP_FPS);
+    if (fps <= 0) fps = 30.0;
+
+    int frameDelayMs = 1000 / fps;
+
     while (true) {
+        // Time before processing frame
+        auto start = std::chrono::steady_clock::now();
+
         // Get the frame of the video
         cap >> frame;
 
@@ -110,6 +121,18 @@ int main(int argc, char* argv[]) {
         }
 
         convertFrame(frame);
+
+        // Time after processing frame
+        auto end = std::chrono::steady_clock::now();
+
+        // Actual time taken to process and print frame
+        std::chrono::duration<double, std::milli> processingTime = end - start;
+
+        if (processingTime.count() < frameDelayMs) {
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(frameDelayMs - static_cast<int>(processingTime.count()))
+            );
+        }
     }
 
     // restore terminal
