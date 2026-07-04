@@ -6,6 +6,8 @@
 #include <thread>
 #include <csignal>
 #include <cstdio>
+#include <iomanip>
+#include <sstream>
 #include <sys/ioctl.h>
 #include <opencv2/opencv.hpp>
 
@@ -34,6 +36,7 @@ cv::Size getTerminalSize() {
 void convertFrame(cv::Mat frame) {
     cv::Mat resizedFrame;
     cv::Size maxTerminalSize = getTerminalSize();
+    maxTerminalSize.height -= 1; // Space for time
 
     double scaleX = static_cast<double>(maxTerminalSize.width) / frame.cols;
     double scaleY = static_cast<double>(maxTerminalSize.height) / frame.rows;
@@ -69,7 +72,7 @@ void convertFrame(cv::Mat frame) {
         }
 
         // Add newline and reset colour
-        frameBuffer += "\033[0m\n";
+        frameBuffer += "\033[0m\033[K\n";
     }
 
     // Print the frame to terminal
@@ -85,6 +88,51 @@ void handleInterrupt(int signum) {
     std::remove("audio.wav");
 
     exit(signum);
+}
+
+std::string formatTime(int milliseconds) {
+    if (milliseconds < 0) milliseconds = 0;
+
+    int totalSeconds = milliseconds / 1000;
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+
+    std::ostringstream oss;
+    oss << std::setfill('0') << std::setw(2) << minutes << ":"
+        << std::setfill('0') << std::setw(2) << seconds;
+
+    return oss.str();
+}
+
+void printUI(double currMs, double totalMs, int terminalCols) {
+    if (currMs > totalMs) currMs = totalMs;
+
+    std::string currTime = formatTime(currMs);
+    std::string totalTime = formatTime(totalMs);
+
+    std::string timeDisplay = " " + currTime + " / " + totalTime;
+
+    // calc total width for the bar
+    int barWidth = terminalCols - timeDisplay.length() - 3;
+
+    // Too small
+    if (barWidth < 10) return;
+
+    double progress = currMs / totalMs;
+    int fillWidth = static_cast<int>(progress * barWidth);
+
+    std::string bar = "[";
+    for (int i{0}; i < barWidth; ++i) {
+        if (i < fillWidth) bar += "=";
+        else if (i == fillWidth) bar += ">";
+        else bar += " ";
+    }
+    bar += "]";
+
+    // \033[48;5;236m - dark great background
+    // \033[38;5;255m - white text colour
+    // \033[K - Clears the rest of the line
+    std::cout << "\033[48;5;236m\033[38;5;255m" << bar << timeDisplay << "\033[K\033[0m\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -147,6 +195,10 @@ int main(int argc, char* argv[]) {
     double fps = cap.get(cv::CAP_PROP_FPS);
     if (fps <= 0) fps = 30.0;
 
+    // Get the total frames
+    double totalFrames = cap.get(cv::CAP_PROP_FRAME_COUNT);
+    double totalTimeMs = totalFrames * (1000.0 / fps);
+
     while (true) {
         // Get the frame of the video
         cap >> frame;
@@ -175,6 +227,10 @@ int main(int argc, char* argv[]) {
 
         // render the frame
         convertFrame(frame);
+
+        // Draw UI overlay
+        int cols = getTerminalSize().width * 2;
+        printUI(currentAudioTimeMs, totalTimeMs, cols);
 
         currentFrame++;
     }
