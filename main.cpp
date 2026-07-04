@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <chrono>
 #include <thread>
+#include <csignal>
 #include <sys/ioctl.h>
 #include <opencv2/opencv.hpp>
 
@@ -62,7 +63,17 @@ void convertFrame(cv::Mat frame) {
     std::cout << frameBuffer;
 }
 
+// Handle user force closing
+void handleInterrupt(int signum) {
+    std::cout << "\033[?1049l\033[?25h\033[0m\n";
+    std::cout << "Video interuppted.\n";
+
+    exit(signum);
+}
+
 int main(int argc, char* argv[]) {
+    std::signal(SIGINT, handleInterrupt);
+
     if (!downloaderInstalled()) {
         std::cerr << "Error: 'yt-dlp' is not installed on your system PATH.\n";
         std::cerr << "Please install it to use this player.\n";
