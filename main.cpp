@@ -28,10 +28,11 @@ void convertFrame(cv::Mat frame) {
             // Get the RGB values
             int r = pixel[0], g = pixel[1], b = pixel[2];
 
-            std::cout << PIXEL;
+            // Print with ANSI characters
+            std::cout << "\033[48;2;" << r << ";" << g << ";" << b << "m  ";
         }
 
-        std::cout << "\n";
+        std::cout << "\033[0m\n";
     }
 }
 
