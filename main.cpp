@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include <csignal>
+#include <cstdio>
 #include <sys/ioctl.h>
 #include <opencv2/opencv.hpp>
 
@@ -68,6 +69,8 @@ void handleInterrupt(int signum) {
     std::cout << "\033[?1049l\033[?25h\033[0m\n";
     std::cout << "Video interuppted.\n";
 
+    std::remove("video.mp4");
+
     exit(signum);
 }
 
@@ -88,7 +91,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    std::string command = "yt-dlp -f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" -o video.mp4 " + std::string(argv[1]);
+    std::string command = "yt-dlp --force-overwrites -f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" -o video.mp4 " + std::string(argv[1]);
 
     int res = std::system(command.c_str());
 
@@ -151,5 +154,9 @@ int main(int argc, char* argv[]) {
 
     // Free the capture
     cap.release();
+
+    // Remove video file
+    std::remove("video.mp4");
+
     return 0;
 }
