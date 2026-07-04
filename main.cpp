@@ -3,13 +3,36 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 
+#define PIXEL "■"
+
 bool downloaderInstalled() {
     int res = std::system("yt-dlp --version > /dev/null 2>&1");
     return res == 0;
 }
 
 void convertFrame(cv::Mat frame) {
-    //TODO: convert frame into unicode
+    // Convert to RGB
+    cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
+
+    cv::Mat resizedFrame;
+    cv::Size termialSize(100, 40);
+
+    // Resize to the terminal
+    cv::resize(frame, resizedFrame, termialSize, 0, 0, cv::INTER_AREA);
+
+    for (int y{0}; y < resizedFrame.rows; ++y) {
+        for (int x{0}; x < resizedFrame.cols; ++x) {
+            // get the pixel at (y, x)
+            cv::Vec3b pixel = resizedFrame.at<cv::Vec3b>(y, x);
+
+            // Get the RGB values
+            int r = pixel[0], g = pixel[1], b = pixel[2];
+
+            std::cout << PIXEL;
+        }
+
+        std::cout << "\n";
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -58,7 +81,7 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        std::cout << frame;
+        convertFrame(frame);
         break;
     }
 
