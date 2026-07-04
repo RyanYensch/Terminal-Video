@@ -3,8 +3,6 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 
-#define PIXEL "■"
-
 bool downloaderInstalled() {
     int res = std::system("yt-dlp --version > /dev/null 2>&1");
     return res == 0;
@@ -20,6 +18,10 @@ void convertFrame(cv::Mat frame) {
     // Resize to the terminal
     cv::resize(frame, resizedFrame, termialSize, 0, 0, cv::INTER_AREA);
 
+    // frame buffer for cout efficiency
+    std::string frameBuffer;
+    frameBuffer.reserve(resizedFrame.rows * resizedFrame.cols * 21 + resizedFrame.rows * 5);
+
     for (int y{0}; y < resizedFrame.rows; ++y) {
         for (int x{0}; x < resizedFrame.cols; ++x) {
             // get the pixel at (y, x)
@@ -28,12 +30,19 @@ void convertFrame(cv::Mat frame) {
             // Get the RGB values
             int r = pixel[0], g = pixel[1], b = pixel[2];
 
-            // Print with ANSI characters
-            std::cout << "\033[48;2;" << r << ";" << g << ";" << b << "m  ";
+            // Add rgb character to the frame buffer
+            frameBuffer += "\033[48;2;" +
+                            std::to_string(r) + ";" +
+                            std::to_string(g) + ";" +
+                            std::to_string(b) + "m  ";
         }
 
-        std::cout << "\033[0m\n";
+        // Add newline and reset colour
+        frameBuffer += "\033[0m\n";
     }
+
+    // Print the frame to terminal
+    std::cout << frameBuffer;
 }
 
 int main(int argc, char* argv[]) {
