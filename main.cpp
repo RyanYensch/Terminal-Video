@@ -18,9 +18,9 @@ void convertFrame(cv::Mat frame) {
     // Resize to the terminal
     cv::resize(frame, resizedFrame, termialSize, 0, 0, cv::INTER_AREA);
 
-    // frame buffer for cout efficiency
-    std::string frameBuffer;
-    frameBuffer.reserve(resizedFrame.rows * resizedFrame.cols * 21 + resizedFrame.rows * 5);
+    // frame buffer for cout efficiency and move cursor
+    std::string frameBuffer = "\033[H";
+    frameBuffer.reserve(resizedFrame.rows * resizedFrame.cols * 21 + resizedFrame.rows * 5 + 3);
 
     for (int y{0}; y < resizedFrame.rows; ++y) {
         for (int x{0}; x < resizedFrame.cols; ++x) {
@@ -81,6 +81,9 @@ int main(int argc, char* argv[]) {
 
     cv::Mat frame;
 
+    // Clear the screen before video
+    std::cout << "\033[2J";
+
     while (true) {
         // Get the frame of the video
         cap >> frame;
@@ -92,9 +95,9 @@ int main(int argc, char* argv[]) {
         }
 
         convertFrame(frame);
-        break;
     }
 
+    // Free the capture
     cap.release();
     return 0;
 }
