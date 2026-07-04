@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
+#include <opencv2/opencv.hpp>
 
 bool downloaderInstalled() {
     int res = std::system("yt-dlp --version > /dev/null 2>&1");

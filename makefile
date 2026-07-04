@@ -2,7 +2,10 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -Wall -Wextra -O2
+CXXFLAGS = -Wall -Wextra -O2 `pkg-config --cflags opencv4`
+
+# Linker flags
+LDFLAGS = `pkg-config --libs opencv4`
 
 # Project Files
 TARGET = player
@@ -14,7 +17,7 @@ all: $(TARGET)
 
 # Link object files and create executable
 $(TARGET): $(OBJS)
-	$(CXX) -o ${TARGET} ${OBJS}
+	$(CXX) -o ${TARGET} ${OBJS} ${LDFLAGS}
 
 # Compile into object files
 %.o : %.cpp
