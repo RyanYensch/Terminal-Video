@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    std::string command = "yt-dlp -o video.mp4 " + std::string(argv[1]);
+    std::string command = "yt-dlp -f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]\" -o video.mp4 " + std::string(argv[1]);
 
     int res = std::system(command.c_str());
 
