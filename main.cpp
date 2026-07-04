@@ -9,6 +9,9 @@
 #include <sys/ioctl.h>
 #include <opencv2/opencv.hpp>
 
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
 bool downloaderInstalled() {
     int res = std::system("yt-dlp --version > /dev/null 2>&1");
     return res == 0;
@@ -126,21 +129,25 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    cv::Mat frame;
+    ma_engine engine;
+    if(ma_engine_init(NULL, &engine) != MA_SUCCESS) {
+        std::cerr << "Error: Failed to initialise audio engine.\n";
+        exit(EXIT_FAILURE);
+    }
 
     // Clear the screen before video
     std::cout << "\033[?1049h\033[?25l";
+
+    cv::Mat frame;
+    int currentFrame = 0;
+
+    ma_engine_play_sound(&engine, "audio.wav", NULL);
 
     // Get the fps
     double fps = cap.get(cv::CAP_PROP_FPS);
     if (fps <= 0) fps = 30.0;
 
-    int frameDelayMs = 1000 / fps;
-
     while (true) {
-        // Time before processing frame
-        auto start = std::chrono::steady_clock::now();
-
         // Get the frame of the video
         cap >> frame;
 
@@ -150,23 +157,33 @@ int main(int argc, char* argv[]) {
             break;
         }
 
+        double expectedVideoTimeMs = currentFrame * (1000.0 / fps);
+        double currentAudioTimeMs = static_cast<double>(ma_engine_get_time_in_milliseconds(&engine));
+
+        // Video more than 50ms behind it is lag
+        if (expectedVideoTimeMs < currentAudioTimeMs - 50.0) {
+            // skip the frame to catch up
+            currentFrame++;
+            continue;
+        }
+
+        // Video is ahead of audio, delay to match
+        if (expectedVideoTimeMs > currentAudioTimeMs) {
+            int sleepTime = static_cast<int>(expectedVideoTimeMs - currentAudioTimeMs);
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
+        }
+
+        // render the frame
         convertFrame(frame);
 
-        // Time after processing frame
-        auto end = std::chrono::steady_clock::now();
-
-        // Actual time taken to process and print frame
-        std::chrono::duration<double, std::milli> processingTime = end - start;
-
-        if (processingTime.count() < frameDelayMs) {
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds(frameDelayMs - static_cast<int>(processingTime.count()))
-            );
-        }
+        currentFrame++;
     }
 
     // restore terminal
     std::cout << "\033[?1049l\033[?25h";
+
+    // shut down the audio engine
+    ma_engine_uninit(&engine);
 
     // Free the capture
     cap.release();
