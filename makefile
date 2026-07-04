@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -O2 `pkg-config --cflags opencv4`
 
 # Linker flags
-LDFLAGS = `pkg-config --libs opencv4`
+LDFLAGS = `pkg-config --libs opencv4` -lpthread -lm -ldl
 
 # Project Files
 TARGET = player
