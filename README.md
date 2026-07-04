@@ -2,7 +2,7 @@
 
 Watch youtube videos within your terminal, with both audio and video.
 
-![DVD Logo in Terminal](/images/dvd_video.png)
+![DVD Logo in Terminal](/images/dvd_video.png "DVD Logo in Terminal")
 
 To use you must:
 - [Install Dependencies and Compile](#how-to-install)
