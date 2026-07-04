@@ -1,6 +1,7 @@
 # Custom files
 player
 video.mp4
+audio.wav
 
 # Prerequisites
 *.d

@@ -155,8 +155,6 @@ int main(int argc, char* argv[]) {
     std::string videoCommand = "yt-dlp -q --progress --no-warnings --force-overwrites -f \"bestvideo[ext=mp4]/best[ext=mp4]\" -o video.mp4 " + std::string(argv[1]);
     std::string audioCommand = "yt-dlp -q --progress --no-warnings --force-overwrites -f \"bestaudio\" --extract-audio --audio-format wav -o audio.wav " + std::string(argv[1]);
 
-    std::cout << "\033[?25l";
-
     std::cout << "Downloading Video Track...\n";
     int resVideo = std::system(videoCommand.c_str());
 
