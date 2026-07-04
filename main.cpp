@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
+#include <unistd.h>
+#include <sys/ioctl.h>
 #include <opencv2/opencv.hpp>
 
 bool downloaderInstalled() {
@@ -8,15 +10,28 @@ bool downloaderInstalled() {
     return res == 0;
 }
 
+cv::Size getTerminalSize() {
+    struct winsize w;
+
+    // If it failed return a default size
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
+        return cv::Size(100, 40);
+    }
+
+    int pixelWidth = w.ws_col / 2; //each pixel is 2 wide
+    int pixelHeight = w.ws_row;
+
+    return cv::Size(pixelWidth, pixelHeight);
+}
+
 void convertFrame(cv::Mat frame) {
-    // Convert to RGB
-    cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
 
     cv::Mat resizedFrame;
-    cv::Size termialSize(100, 40);
+    cv::Size terminalSize = getTerminalSize();
 
-    // Resize to the terminal
-    cv::resize(frame, resizedFrame, termialSize, 0, 0, cv::INTER_AREA);
+    // Resize and convert to RGB
+    cv::resize(frame, resizedFrame, terminalSize, 0, 0, cv::INTER_AREA);
+    cv::cvtColor(resizedFrame, resizedFrame, cv::COLOR_BGR2RGB);
 
     // frame buffer for cout efficiency and move cursor
     std::string frameBuffer = "\033[H";
@@ -82,7 +97,7 @@ int main(int argc, char* argv[]) {
     cv::Mat frame;
 
     // Clear the screen before video
-    std::cout << "\033[2J";
+    std::cout << "\033[?1049h\033[?25l";
 
     while (true) {
         // Get the frame of the video
@@ -96,6 +111,9 @@ int main(int argc, char* argv[]) {
 
         convertFrame(frame);
     }
+
+    // restore terminal
+    std::cout << "\033[?1049l\033[?25h";
 
     // Free the capture
     cap.release();
