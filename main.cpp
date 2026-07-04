@@ -29,12 +29,21 @@ cv::Size getTerminalSize() {
 }
 
 void convertFrame(cv::Mat frame) {
-
     cv::Mat resizedFrame;
-    cv::Size terminalSize = getTerminalSize();
+    cv::Size maxTerminalSize = getTerminalSize();
+
+    double scaleX = static_cast<double>(maxTerminalSize.width) / frame.cols;
+    double scaleY = static_cast<double>(maxTerminalSize.height) / frame.rows;
+
+    double scale = std::min(scaleX, scaleY);
+
+    int newWidth = std::max(1, static_cast<int>(frame.cols * scale));
+    int newHeight = std::max(1, static_cast<int>(frame.rows * scale));
+
+    cv::Size newSize(newWidth, newHeight);
 
     // Resize and convert to RGB
-    cv::resize(frame, resizedFrame, terminalSize, 0, 0, cv::INTER_AREA);
+    cv::resize(frame, resizedFrame, newSize, 0, 0, cv::INTER_AREA);
     cv::cvtColor(resizedFrame, resizedFrame, cv::COLOR_BGR2RGB);
 
     // frame buffer for cout efficiency and move cursor
