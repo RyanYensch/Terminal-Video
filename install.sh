@@ -28,7 +28,13 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         elif [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
             echo -e "${YELLOW}Ubuntu/Debian detected. Installing via apt...${RESET}"
             sudo apt update
-            sudo apt install -y yt-dlp libopencv-dev nodejs
+            sudo apt install -y libopencv-dev nodejs
+
+            # Get latest yt-dlp from GitHub and make it executable
+            echo -e "${YELLOW}Fetching latest yt-dlp release...${RESET}"
+            sudo wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp
+            sudo chmod a+rx /usr/local/bin/yt-dlp
+
             echo -e "${GREEN}Dependencies installed!${RESET}"
         else
             echo -e "${RED}Unsupported Linux Distro. Please install yt-dlp, OpenCV, and NodeJS manually.${RESET}"
